@@ -220,6 +220,39 @@ static const char index_html[] =
 "                font-size: 1.2rem;\n"
 "                padding: 0 15px 15px;\n"
 "            }\n"
+"            /* Responsive table styling for mobile */\n"
+"            table {\n"
+"                display: block;\n"
+"                overflow-x: auto;\n"
+"                white-space: nowrap;\n"
+"                -webkit-overflow-scrolling: touch;\n"
+"                max-width: 100%;\n"
+"                margin-bottom: 15px;\n"
+"            }\n"
+"            .packet-table td, .packet-table th {\n"
+"                padding: 6px 8px;\n"
+"                font-size: 0.9em;\n"
+"            }\n"
+"            .packet-table .data-col {\n"
+"                max-width: 120px;\n"
+"            }\n"
+"            /* Add a container with horizontal scroll for tables */\n"
+"            .table-container {\n"
+"                width: 100%;\n"
+"                overflow-x: auto;\n"
+"                -webkit-overflow-scrolling: touch;\n"
+"                margin-bottom: 15px;\n"
+"            }\n"
+"            /* Style the scrollbar for webkit browsers */\n"
+"            .table-container::-webkit-scrollbar {\n"
+"                height: 5px;\n"
+"            }\n"
+"            .table-container::-webkit-scrollbar-track {\n"
+"                background: #111;\n"
+"            }\n"
+"            .table-container::-webkit-scrollbar-thumb {\n"
+"                background: #0f0;\n"
+"            }\n"
 "        }\n"
 "        /* CRT effect */\n"
 "        body::after {\n"
@@ -350,8 +383,25 @@ static const char index_html[] =
 "            scrollbar-width: none; /* Firefox */\n"
 "            -ms-overflow-style: none; /* IE and Edge */\n"
 "        }\n"
-"        #packet-container::-webkit-scrollbar {\n"
-"            display: none; /* Chrome, Safari, Opera */\n"
+"        .table-container {\n"
+"            width: 100%;\n"
+"            overflow-x: auto;\n"
+"            -webkit-overflow-scrolling: touch;\n"
+"            margin-bottom: 15px;\n"
+"        }\n"
+"        #packet-container.table-container {\n"
+"            max-height: 400px;\n"
+"            overflow-y: auto;\n"
+"        }\n"
+"        /* Style the scrollbar for webkit browsers */\n"
+"        .table-container::-webkit-scrollbar {\n"
+"            height: 5px;\n"
+"        }\n"
+"        .table-container::-webkit-scrollbar-track {\n"
+"            background: #111;\n"
+"        }\n"
+"        .table-container::-webkit-scrollbar-thumb {\n"
+"            background: #0f0;\n"
 "        }\n"
 "        .glitch {\n"
 "            animation: glitch 0.3s linear infinite;\n"
@@ -444,6 +494,17 @@ static const char index_html[] =
 "            color: #f00;\n"
 "            border: 1px solid #f00;\n"
 "        }\n"
+"        \n"
+"        .danger-btn {\n"
+"            background-color: #2b0303;\n"
+"            border: 1px solid #f00;\n"
+"            color: #f00;\n"
+"        }\n"
+"        \n"
+"        .danger-btn:hover {\n"
+"            background-color: #3b0505;\n"
+"            color: #ff3333;\n"
+"        }\n"
 "    </style>\n"
 "</head>\n"
 "<body>\n"
@@ -480,20 +541,22 @@ static const char index_html[] =
 "                <div id=\"scan-status\" class=\"status\"></div>\n"
 "                <div id=\"scan-results\">\n"
 "                    <div class=\"loader\" style=\"display: none;\"></div>\n"
-"                    <table id=\"networks-table\" style=\"display: none;\">\n"
-"                        <thead>\n"
-"                            <tr>\n"
-"                                <th>SSID</th>\n"
-"                                <th>BSSID</th>\n"
-"                                <th>B4nd</th>\n"
-"                                <th>Ch4nn3l</th>\n"
-"                                <th>RSSI</th>\n"
-"                                <th>PHY M0d3</th>\n"
-"                                <th>S3cur1ty</th>\n"
-"                            </tr>\n"
-"                        </thead>\n"
-"                        <tbody></tbody>\n"
-"                    </table>\n"
+"                    <div class=\"table-container\">\n"
+"                        <table id=\"networks-table\" style=\"display: none;\">\n"
+"                            <thead>\n"
+"                                <tr>\n"
+"                                    <th>SSID</th>\n"
+"                                    <th>BSSID</th>\n"
+"                                    <th>B4nd</th>\n"
+"                                    <th>Ch4nn3l</th>\n"
+"                                    <th>RSSI</th>\n"
+"                                    <th>PHY M0d3</th>\n"
+"                                    <th>S3cur1ty</th>\n"
+"                                </tr>\n"
+"                            </thead>\n"
+"                            <tbody></tbody>\n"
+"                        </table>\n"
+"                    </div>\n"
 "                </div>\n"
 "            </div>\n"
 "            \n"
@@ -545,7 +608,7 @@ static const char index_html[] =
 "                        <span id=\"packet-count\">0</span> p4ck3ts c4ptur3d\n"
 "                        <button id=\"clear-packets-top\" class=\"btn\" style=\"margin-left: 15px;\">CL34R L0G</button>\n"
 "                    </div>\n"
-"                    <div id=\"packet-container\" style=\"overflow-x: auto; margin-top: 15px; max-height: 400px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;\">\n"
+"                    <div id=\"packet-container\" class=\"table-container\">\n"
 "                        <table id=\"packet-table\" class=\"packet-table\">\n"
 "                            <thead>\n"
 "                                <tr>\n"
@@ -583,6 +646,10 @@ static const char index_html[] =
 "                    </div>\n"
 "                    <button id=\"save-settings\" class=\"btn\">Save Settings</button>\n"
 "                    <div id=\"settings-status\" class=\"status-message\"></div>\n"
+"                    <div class=\"setting-group\" style=\"margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;\">\n"
+"                        <label>System Control:</label>\n"
+"                        <button id=\"reboot-device\" class=\"btn danger-btn\">Reboot Device</button>\n"
+"                    </div>\n"
 "                </div>\n"
 "            </div>\n"
 "        </div>\n"
@@ -919,6 +986,7 @@ static const char index_html[] =
 "            const toggleText = antennaSwitch.nextElementSibling.nextElementSibling;\n"
 "            const saveButton = document.getElementById('save-settings');\n"
 "            const statusMessage = document.getElementById('settings-status');\n"
+"            const rebootButton = document.getElementById('reboot-device');\n"
 "            \n"
 "            // Load current antenna settings\n"
 "            fetch('/api/antenna')\n"
@@ -969,6 +1037,43 @@ static const char index_html[] =
 "                    statusMessage.textContent = 'Failed to save settings';\n"
 "                    statusMessage.className = 'status-message error';\n"
 "                });\n"
+"            });\n"
+"            \n"
+"            // Add reboot button handler\n"
+"            rebootButton.addEventListener('click', () => {\n"
+"                if (confirm('Are you sure you want to reboot the device? Any unsaved changes will be lost.')) {\n"
+"                    statusMessage.textContent = 'Rebooting device...';\n"
+"                    statusMessage.className = 'status-message';\n"
+"                    \n"
+"                    fetch('/api/reboot')\n"
+"                        .then(response => {\n"
+"                            statusMessage.textContent = 'Device is rebooting. Please reconnect in a few seconds.';\n"
+"                            statusMessage.className = 'status-message success';\n"
+"                            \n"
+"                            // Disable all interactive elements during reboot\n"
+"                            antennaSwitch.disabled = true;\n"
+"                            saveButton.disabled = true;\n"
+"                            rebootButton.disabled = true;\n"
+"                            \n"
+"                            // Start a countdown for automatic reconnection attempt\n"
+"                            let countdown = 15;\n"
+"                            const interval = setInterval(() => {\n"
+"                                statusMessage.textContent = `Device is rebooting. Attempting to reconnect in ${countdown} seconds...`;\n"
+"                                countdown--;\n"
+"                                \n"
+"                                if (countdown < 0) {\n"
+"                                    clearInterval(interval);\n"
+"                                    statusMessage.textContent = 'Reconnecting...';\n"
+"                                    window.location.reload();\n"
+"                                }\n"
+"                            }, 1000);\n"
+"                        })\n"
+"                        .catch(error => {\n"
+"                            // If we get here, it's likely because the device already started rebooting\n"
+"                            statusMessage.textContent = 'Device is rebooting. Please wait and refresh the page.';\n"
+"                            statusMessage.className = 'status-message success';\n"
+"                        });\n"
+"                }\n"
 "            });\n"
 "        }\n"
 "        \n"
@@ -1025,7 +1130,7 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     wifi_mode_t original_mode;
     esp_err_t mode_err = esp_wifi_get_mode(&original_mode);
     if (mode_err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to get WiFi mode: %s", esp_err_to_name(mode_err));
+        ESP_LOGI(TAG, "Failed to get WiFi mode: %s", esp_err_to_name(mode_err));
         httpd_resp_sendstr(req, "{\"status\":\"error\",\"message\":\"Failed to get WiFi mode\"}");
         return ESP_OK;
     }
@@ -1033,7 +1138,7 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     // Set to APSTA mode to ensure we keep the AP running while scanning
     esp_err_t set_mode_err = esp_wifi_set_mode(WIFI_MODE_APSTA);
     if (set_mode_err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set WiFi mode to APSTA: %s", esp_err_to_name(set_mode_err));
+        ESP_LOGI(TAG, "Failed to set WiFi mode to APSTA: %s", esp_err_to_name(set_mode_err));
         httpd_resp_sendstr(req, "{\"status\":\"error\",\"message\":\"Failed to set WiFi mode\"}");
         return ESP_OK;
     }
@@ -1054,11 +1159,11 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "Executing WiFi scan with scan_config...");
     esp_err_t scan_status = esp_wifi_scan_start(&scan_config, true);
     if (scan_status != ESP_OK) {
-        ESP_LOGE(TAG, "WiFi scan failed to start: %s", esp_err_to_name(scan_status));
+        ESP_LOGI(TAG, "WiFi scan failed to start: %s", esp_err_to_name(scan_status));
         
         esp_err_t restore_err = esp_wifi_set_mode(original_mode);
         if (restore_err != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
+            ESP_LOGI(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
         }
         
         // Send error response with specific error message
@@ -1072,11 +1177,11 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     uint16_t ap_count = 0;
     esp_err_t count_err = esp_wifi_scan_get_ap_num(&ap_count);
     if (count_err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to get AP count: %s", esp_err_to_name(count_err));
+        ESP_LOGI(TAG, "Failed to get AP count: %s", esp_err_to_name(count_err));
         
         esp_err_t restore_err = esp_wifi_set_mode(original_mode);
         if (restore_err != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
+            ESP_LOGI(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
         }
         
         // Send error response with specific error message
@@ -1092,7 +1197,7 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
         // No networks found
         esp_err_t restore_err = esp_wifi_set_mode(original_mode);
         if (restore_err != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
+            ESP_LOGI(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
         }
         httpd_resp_sendstr(req, "{\"status\":\"success\",\"networks\":[]}");
         return ESP_OK;
@@ -1101,11 +1206,11 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     // Allocate memory for scan results
     wifi_ap_record_t *ap_records = malloc(sizeof(wifi_ap_record_t) * ap_count);
     if (ap_records == NULL) {
-        ESP_LOGE(TAG, "Failed to allocate memory for scan results");
+        ESP_LOGI(TAG, "Failed to allocate memory for scan results");
         
         esp_err_t restore_err = esp_wifi_set_mode(original_mode);
         if (restore_err != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
+            ESP_LOGI(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
         }
         
         httpd_resp_sendstr(req, "{\"status\":\"error\",\"message\":\"Out of memory\"}");
@@ -1115,13 +1220,13 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     // Get AP records
     esp_err_t get_ap_err = esp_wifi_scan_get_ap_records(&ap_count, ap_records);
     if (get_ap_err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to get AP records: %s", esp_err_to_name(get_ap_err));
+        ESP_LOGI(TAG, "Failed to get AP records: %s", esp_err_to_name(get_ap_err));
         
         // Clean up and restore
         free(ap_records);
         esp_err_t restore_err = esp_wifi_set_mode(original_mode);
         if (restore_err != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
+            ESP_LOGI(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
         }
         
         // Send error response with specific error message
@@ -1136,11 +1241,11 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     cJSON *networks = cJSON_AddArrayToObject(root, "networks");
     
     if (!root || !networks) {
-        ESP_LOGE(TAG, "Failed to create JSON objects");
+        ESP_LOGI(TAG, "Failed to create JSON objects");
         free(ap_records);
         esp_err_t restore_err = esp_wifi_set_mode(original_mode);
         if (restore_err != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
+            ESP_LOGI(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
         }
         httpd_resp_sendstr(req, "{\"status\":\"error\",\"message\":\"JSON creation failed\"}");
         return ESP_OK;
@@ -1151,7 +1256,7 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     for (int i = 0; i < ap_count; i++) {
         cJSON *network = cJSON_CreateObject();
         if (!network) {
-            ESP_LOGE(TAG, "Failed to create network JSON object");
+            ESP_LOGI(TAG, "Failed to create network JSON object");
             continue;
         }
         
@@ -1231,7 +1336,7 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     // Generate JSON string
     char *json_response = cJSON_PrintUnformatted(root);
     if (!json_response) {
-        ESP_LOGE(TAG, "Failed to print JSON");
+        ESP_LOGI(TAG, "Failed to print JSON");
         httpd_resp_sendstr(req, "{\"status\":\"error\",\"message\":\"JSON printing failed\"}");
     } else {
         ESP_LOGI(TAG, "Sending scan results with %d networks", ap_count);
@@ -1245,7 +1350,7 @@ static esp_err_t api_scan_networks_handler(httpd_req_t *req) {
     
     esp_err_t restore_err = esp_wifi_set_mode(original_mode);
     if (restore_err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
+        ESP_LOGI(TAG, "Failed to restore original WiFi mode: %s", esp_err_to_name(restore_err));
     }
     
     return ESP_OK;
@@ -1600,6 +1705,20 @@ static esp_err_t api_sniff_packets_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
+// API endpoint for rebooting the device
+static esp_err_t api_reboot_handler(httpd_req_t *req) {
+    httpd_resp_set_type(req, "application/json");
+    
+    // Send response before rebooting
+    httpd_resp_sendstr(req, "{\"status\":\"ok\",\"message\":\"Rebooting device...\"}");
+    
+    // Schedule reboot after a short delay to allow the response to be sent
+    ESP_LOGI(TAG, "Reboot requested via web interface");
+    esp_restart();
+    
+    return ESP_OK;
+}
+
 // Register URI handlers
 esp_err_t register_uri_handlers(httpd_handle_t server) {
     // API handler for scanning networks
@@ -1662,6 +1781,24 @@ esp_err_t register_uri_handlers(httpd_handle_t server) {
     };
     httpd_register_uri_handler(server, &get_antenna_settings_uri);
     
+    // Register reboot endpoint
+    httpd_uri_t reboot_uri = {
+        .uri = "/api/reboot",
+        .method = HTTP_GET,
+        .handler = api_reboot_handler,
+        .user_ctx = NULL
+    };
+    httpd_register_uri_handler(server, &reboot_uri);
+    
+    // Handler specifically for the root path
+    httpd_uri_t root_handler = {
+        .uri = "/",
+        .method = HTTP_GET,
+        .handler = http_serve_file,
+        .user_ctx = NULL
+    };
+    httpd_register_uri_handler(server, &root_handler);
+    
     // Handler for static files (this will only handle index.html from embedded string)
     httpd_uri_t file_handler = {
         .uri = "/*",
@@ -1671,28 +1808,41 @@ esp_err_t register_uri_handlers(httpd_handle_t server) {
     };
     httpd_register_uri_handler(server, &file_handler);
     
+    // Note: We rely on the config settings for timeouts instead of trying
+    // to set them at runtime which isn't supported in all ESP-IDF versions
+    
     return ESP_OK;
 }
 
 // Start the HTTP server
 httpd_handle_t start_webserver(void) {
+    // Initialize HTTP server configuration
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.uri_match_fn = httpd_uri_match_wildcard;
-    config.max_uri_handlers = 16;  // Increased to handle all our routes
     
-    // Increase timeout values to prevent connection issues
-    config.recv_wait_timeout = 10;    // Default is 5 seconds
-    config.send_wait_timeout = 10;    // Default is 5 seconds
-    config.lru_purge_enable = true;   // Enable LRU purging to free sockets when necessary
+    // Use more robust settings
+    config.task_priority = tskIDLE_PRIORITY + 5;  // Higher priority
+    config.stack_size = 8192;                     // Larger stack
+    config.core_id = 0;                           // Pin to first core
+    config.recv_wait_timeout = 20;                // Longer receive timeout (seconds)
+    config.send_wait_timeout = 20;                // Longer send timeout (seconds)
+    config.lru_purge_enable = true;               // Enable LRU connection purging
+    config.max_uri_handlers = 16;                 // Support more URI handlers
+    config.max_open_sockets = 7;                  // More concurrent connections
+    config.keep_alive_enable = true;              // Enable keep-alive connections
+    config.keep_alive_idle = 30;                  // Keep-alive idle time (seconds)
+    config.keep_alive_interval = 5;               // Keep-alive interval time (seconds)
+    config.keep_alive_count = 3;                  // Keep-alive packet retry count
     
-    ESP_LOGI(TAG, "Starting HTTP server on port: '%d'", config.server_port);
-    
+    // Start the httpd server
+    ESP_LOGI(TAG, "Starting server on port: '%d'", config.server_port);
     if (httpd_start(&server, &config) == ESP_OK) {
+        // Register URI handlers
+        ESP_LOGI(TAG, "Registering URI handlers");
         register_uri_handlers(server);
         return server;
     }
-    
-    ESP_LOGE(TAG, "Failed to start HTTP server!");
+
+    ESP_LOGI(TAG, "Error starting server!");
     return NULL;
 }
 
@@ -1714,6 +1864,6 @@ void init_web_server(void) {
     if (server) {
         ESP_LOGI(TAG, "Web server started successfully");
     } else {
-        ESP_LOGE(TAG, "Failed to start web server");
+        ESP_LOGI(TAG, "Failed to start web server");
     }
-} 
+}

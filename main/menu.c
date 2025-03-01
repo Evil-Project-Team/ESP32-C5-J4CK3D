@@ -24,7 +24,7 @@ void menu_add_item(Menu* menu, const char* name, void (*callback)(void)) {
         int new_capacity = menu->capacity * 2;
         MenuItem* new_items = (MenuItem*)realloc(menu->items, new_capacity * sizeof(MenuItem));
         if (new_items == NULL) {
-            ESP_LOGE(TAG, "Failed to expand menu capacity");
+            ESP_LOGI(TAG, "Failed to expand menu capacity");
             return;
         }
         menu->items = new_items;
@@ -50,7 +50,7 @@ void menu_add_context_item(Menu* menu, const char* name, void (*callback)(void* 
         int new_capacity = menu->capacity * 2;
         MenuItem* new_items = (MenuItem*)realloc(menu->items, new_capacity * sizeof(MenuItem));
         if (new_items == NULL) {
-            ESP_LOGE(TAG, "Failed to expand menu capacity");
+            ESP_LOGI(TAG, "Failed to expand menu capacity");
             return;
         }
         menu->items = new_items;
@@ -76,7 +76,7 @@ void menu_add_submenu(Menu* menu, const char* name, Menu* submenu) {
         int new_capacity = menu->capacity * 2;
         MenuItem* new_items = (MenuItem*)realloc(menu->items, new_capacity * sizeof(MenuItem));
         if (new_items == NULL) {
-            ESP_LOGE(TAG, "Failed to expand menu capacity");
+            ESP_LOGI(TAG, "Failed to expand menu capacity");
             return;
         }
         menu->items = new_items;

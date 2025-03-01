@@ -50,14 +50,14 @@ bool start_wifi_sniffer(uint8_t channel, uint8_t filter_type) {
     if (sniffer_running_mutex == NULL) {
         sniffer_running_mutex = xSemaphoreCreateMutex();
         if (sniffer_running_mutex == NULL) {
-            ESP_LOGE(TAG, "Failed to create sniffer mutex");
+            ESP_LOGI(TAG, "Failed to create sniffer mutex");
             return false;
         }
     }
     
     // Take mutex
     if (xSemaphoreTake(sniffer_running_mutex, portMAX_DELAY) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to take sniffer mutex");
+        ESP_LOGI(TAG, "Failed to take sniffer mutex");
         return false;
     }
     
@@ -71,7 +71,7 @@ bool start_wifi_sniffer(uint8_t channel, uint8_t filter_type) {
     if (packet_queue == NULL) {
         packet_queue = xQueueCreate(MAX_PACKETS_QUEUE, sizeof(packet_info_t*));
         if (packet_queue == NULL) {
-            ESP_LOGE(TAG, "Failed to create packet queue");
+            ESP_LOGI(TAG, "Failed to create packet queue");
             xSemaphoreGive(sniffer_running_mutex);
             return false;
         }
@@ -161,7 +161,7 @@ bool stop_wifi_sniffer(void) {
     
     // Take mutex
     if (sniffer_running_mutex == NULL || xSemaphoreTake(sniffer_running_mutex, portMAX_DELAY) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to take sniffer mutex");
+        ESP_LOGI(TAG, "Failed to take sniffer mutex");
         return false;
     }
     
@@ -192,7 +192,7 @@ bool stop_wifi_sniffer(void) {
 int get_captured_packets(void **packets, int max_packets) {
     // Take mutex
     if (sniffer_running_mutex == NULL || xSemaphoreTake(sniffer_running_mutex, portMAX_DELAY) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to take sniffer mutex");
+        ESP_LOGI(TAG, "Failed to take sniffer mutex");
         return 0;
     }
     
@@ -287,7 +287,7 @@ static void wifi_sniffer_packet_handler(void *buf, wifi_promiscuous_pkt_type_t t
     // Allocate memory for packet info
     packet_info_t *packet_info = malloc(sizeof(packet_info_t));
     if (!packet_info) {
-        ESP_LOGE(TAG, "Failed to allocate memory for packet info");
+        ESP_LOGI(TAG, "Failed to allocate memory for packet info");
         return;
     }
     
