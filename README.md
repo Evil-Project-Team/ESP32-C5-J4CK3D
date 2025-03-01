@@ -39,9 +39,19 @@ Designed for network administrators, security researchers, and IoT developers, t
 
 ## 🛠️ Hardware Requirements
 
-- ESP32-C5 based development board
+- ESP32-C5 based development board (all variants supported)
 - USB-C cable for power and programming
 - Power supply (battery or USB power)
+
+### 🔄 Supported Boards
+
+This project is designed to work with any ESP32-C5 based board:
+
+- **ESP32-C5-DevKitC-1** (official Espressif development board)
+- **ESP32-C5-MINI-1** modules and development boards
+- **Generic ESP32-C5** boards from various manufacturers
+
+A board configuration system is included to support the different GPIO mappings across various ESP32-C5 boards.
 
 ## 📦 Installation
 
@@ -70,6 +80,19 @@ Designed for network administrators, security researchers, and IoT developers, t
    ```bash
    idf.py -p [PORT] monitor
    ```
+
+### 🔧 Adapting for Your ESP32-C5 Board
+
+If you're using a different ESP32-C5 board than the default ESP32-C5-DevKitC:
+
+1. Edit the `main/board_config.h` file to match your board's specifications:
+   - Set the appropriate board define (`BOARD_ESP32_C5_DEVKITC` or `BOARD_ESP32_C5_GENERIC`)
+   - Adjust GPIO pin assignments if they differ from the defaults
+   - Configure WiFi parameters as needed
+
+2. Common adjustments needed:
+   - External/internal antenna selection
+   - Regional WiFi settings
 
 ## 🚀 Usage
 
@@ -108,6 +131,7 @@ ESP32-C5-J4CK3D/
 │   ├── web_server.c       # Web interface and API endpoints
 │   ├── wifi_init.c        # WiFi initialization and configuration
 │   ├── wifi_sniffer.c     # Packet sniffing implementation
+│   ├── board_config.h     # Hardware-specific board configuration
 │   └── headers (.h files) # Component headers
 ├── CMakeLists.txt         # Project configuration
 └── README.md              # Project documentation

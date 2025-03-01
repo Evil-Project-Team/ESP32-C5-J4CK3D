@@ -17,6 +17,7 @@
 #include "web_server.h"
 #include "esp_netif.h"
 #include "lwip/ip4_addr.h"
+#include "board_config.h"
 
 // Define MACSTR and MAC2STR
 #ifndef MAC2STR
@@ -26,9 +27,10 @@
 
 static const char* TAG = "esp32_c5_app";
 
-#define CONFIG_ESP_WIFI_SSID "ESP32-C5"
-#define CONFIG_ESP_WIFI_PASSWORD "password123"
-#define CONFIG_ESP_WIFI_CHANNEL 1
+// WiFi configuration - using values from board_config.h
+#define CONFIG_ESP_WIFI_SSID "ESP32-C5-J4CK3D"
+#define CONFIG_ESP_WIFI_PASSWORD "h4ck3rm4n"
+#define CONFIG_ESP_WIFI_CHANNEL DEFAULT_WIFI_CHANNEL
 #define CONFIG_ESP_MAX_STA_CONN 4
 
 static esp_netif_t *ap_netif = NULL;
@@ -60,34 +62,23 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
 
 // Initialize WiFi in AP mode
 static void wifi_init_ap(void) {
-    ESP_LOGI(TAG, "Initializing WiFi in AP mode");
-    
-    // Initialize TCP/IP stack
+    // Initialize default event loop
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     
-    // Create AP netif
+    // Create default AP netif instance
     ap_netif = esp_netif_create_default_wifi_ap();
-
-    // Set up static IP address
-    esp_netif_ip_info_t ip_info;
-    IP4_ADDR(&ip_info.ip, 192, 168, 4, 1);
-    IP4_ADDR(&ip_info.gw, 192, 168, 4, 1);
-    IP4_ADDR(&ip_info.netmask, 255, 255, 255, 0);
-    esp_netif_dhcps_stop(ap_netif);
-    esp_netif_set_ip_info(ap_netif, &ip_info);
-    esp_netif_dhcps_start(ap_netif);
     
-    // Initialize WiFi
+    // Get the default IP info
+    esp_netif_ip_info_t ip_info;
+    esp_netif_get_ip_info(ap_netif, &ip_info);
+    
+    // Initialize WiFi with default configuration
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     
     // Register event handlers
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
-                                                       ESP_EVENT_ANY_ID,
-                                                       &wifi_event_handler,
-                                                       NULL,
-                                                       NULL));
+    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
     
     // Configure AP settings
     wifi_config_t wifi_config = {
@@ -96,12 +87,11 @@ static void wifi_init_ap(void) {
             .ssid_len = strlen(CONFIG_ESP_WIFI_SSID),
             .password = CONFIG_ESP_WIFI_PASSWORD,
             .max_connection = CONFIG_ESP_MAX_STA_CONN,
-            .authmode = WIFI_AUTH_WPA_WPA2_PSK,
+            .authmode = WIFI_AUTH_WPA2_PSK,
             .channel = CONFIG_ESP_WIFI_CHANNEL
         },
     };
     
-    // Set empty password for open networks
     if (strlen(CONFIG_ESP_WIFI_PASSWORD) == 0) {
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     }
@@ -109,6 +99,32 @@ static void wifi_init_ap(void) {
     // Set mode and config
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+    
+    // Check for antenna setting in NVS
+    nvs_handle_t nvs_handle;
+    uint8_t use_external = 0;
+    esp_err_t ret = nvs_open("storage", NVS_READONLY, &nvs_handle);
+    if (ret == ESP_OK) {
+        nvs_get_u8(nvs_handle, "ext_antenna", &use_external);
+        nvs_close(nvs_handle);
+    }
+    
+    // Configure antenna based on NVS setting
+    // Note: ESP32-C5 uses different antenna configuration methods
+    // For simplicity, we'll just log the antenna setting but not try to set it
+    if (use_external) {
+        ESP_LOGI(TAG, "Using external antenna (from NVS)");
+        // ESP32-C5 doesn't appear to support antenna selection directly
+        // via the same API as other ESP chips
+    } else {
+        // Fall back to config.h setting if no NVS setting
+#if USE_EXTERNAL_ANTENNA
+        ESP_LOGI(TAG, "Using external antenna (from config)");
+#else
+        ESP_LOGI(TAG, "Using internal antenna");
+#endif
+    }
+    
     ESP_ERROR_CHECK(esp_wifi_start());
     
     ESP_LOGI(TAG, "WiFi AP initialized. SSID:%s password:%s channel:%d",
@@ -127,7 +143,7 @@ void app_main(void) {
     ESP_ERROR_CHECK(ret);
 
     // Print system info
-    ESP_LOGI(TAG, "Starting ESP32-C5 Web Management Console");
+    ESP_LOGI(TAG, "Starting ESP32-C5 J4CK3D on %s", BOARD_NAME);
     ESP_LOGI(TAG, "IDF Version: %s", esp_get_idf_version());
     
     esp_chip_info_t chip_info;

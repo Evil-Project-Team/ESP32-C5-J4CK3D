@@ -7,6 +7,7 @@
 #include "cJSON.h"
 #include "esp_chip_info.h"
 #include "esp_system.h"
+#include "nvs_flash.h"
 
 // Include our wifi sniffer functions
 extern bool start_wifi_sniffer(uint8_t channel, uint8_t filter_type);
@@ -352,6 +353,97 @@ static const char index_html[] =
 "        #packet-container::-webkit-scrollbar {\n"
 "            display: none; /* Chrome, Safari, Opera */\n"
 "        }\n"
+"        .glitch {\n"
+"            animation: glitch 0.3s linear infinite;\n"
+"        }\n"
+"        \n"
+"        @keyframes glitch {\n"
+"            0% { transform: translate(0, 0); }\n"
+"            25% { transform: translate(5px, 5px); }\n"
+"            50% { transform: translate(-5px, 5px); }\n"
+"            75% { transform: translate(5px, -5px); }\n"
+"            100% { transform: translate(0, 0); }\n"
+"        }\n"
+"        \n"
+"        /* Settings page styles */\n"
+"        .setting-group {\n"
+"            margin: 15px 0;\n"
+"            display: flex;\n"
+"            align-items: center;\n"
+"            justify-content: space-between;\n"
+"        }\n"
+"        \n"
+"        .toggle-switch {\n"
+"            display: flex;\n"
+"            align-items: center;\n"
+"        }\n"
+"        \n"
+"        .toggle-input {\n"
+"            display: none;\n"
+"        }\n"
+"        \n"
+"        .toggle-label {\n"
+"            position: relative;\n"
+"            display: inline-block;\n"
+"            width: 50px;\n"
+"            height: 26px;\n"
+"            background-color: #222;\n"
+"            border-radius: 13px;\n"
+"            border: 1px solid #666;\n"
+"            cursor: pointer;\n"
+"            margin-right: 10px;\n"
+"        }\n"
+"        \n"
+"        .toggle-label:after {\n"
+"            content: '';\n"
+"            position: absolute;\n"
+"            width: 22px;\n"
+"            height: 22px;\n"
+"            border-radius: 50%;\n"
+"            background-color: #666;\n"
+"            top: 1px;\n"
+"            left: 1px;\n"
+"            transition: all 0.3s;\n"
+"        }\n"
+"        \n"
+"        .toggle-input:checked + .toggle-label {\n"
+"            background-color: #032b11;\n"
+"            border-color: #0f0;\n"
+"        }\n"
+"        \n"
+"        .toggle-input:checked + .toggle-label:after {\n"
+"            transform: translateX(24px);\n"
+"            background-color: #0f0;\n"
+"        }\n"
+"        \n"
+"        .toggle-text {\n"
+"            color: #0f0;\n"
+"            font-weight: bold;\n"
+"            min-width: 65px;\n"
+"        }\n"
+"        \n"
+"        .status-message {\n"
+"            margin-top: 10px;\n"
+"            padding: 8px;\n"
+"            border-radius: 4px;\n"
+"            display: none;\n"
+"        }\n"
+"        \n"
+"        .status-message:not(:empty) {\n"
+"            display: block;\n"
+"        }\n"
+"        \n"
+"        .status-message.success {\n"
+"            background-color: #032b11;\n"
+"            color: #0f0;\n"
+"            border: 1px solid #0f0;\n"
+"        }\n"
+"        \n"
+"        .status-message.error {\n"
+"            background-color: #2b0303;\n"
+"            color: #f00;\n"
+"            border: 1px solid #f00;\n"
+"        }\n"
 "    </style>\n"
 "</head>\n"
 "<body>\n"
@@ -481,7 +573,16 @@ static const char index_html[] =
 "                <div class=\"card\">\n"
 "                    <h3>D3vic3 C0nfigur4ti0n</h3>\n"
 "                    <p>C0nfigur3 d3vic3 s3tting5:</p>\n"
-"                    <p><strong>N0t3:</strong> S3tting5 functi0n4lity will b3 4dd3d in futur3 upd4t35.</p>\n"
+"                    <div class=\"setting-group\">\n"
+"                        <label for=\"antenna-switch\">Antenna Selection:</label>\n"
+"                        <div class=\"toggle-switch\">\n"
+"                            <input type=\"checkbox\" id=\"antenna-switch\" class=\"toggle-input\">\n"
+"                            <label for=\"antenna-switch\" class=\"toggle-label\"></label>\n"
+"                            <span class=\"toggle-text\">Internal</span>\n"
+"                        </div>\n"
+"                    </div>\n"
+"                    <button id=\"save-settings\" class=\"btn\">Save Settings</button>\n"
+"                    <div id=\"settings-status\" class=\"status-message\"></div>\n"
 "                </div>\n"
 "            </div>\n"
 "        </div>\n"
@@ -811,8 +912,69 @@ static const char index_html[] =
 "        }, 5000);\n"
 "        \n"
 "        // Initialize\n"
+"        \n"
+"        // Handle settings page functionality\n"
+"        function initSettingsPage() {\n"
+"            const antennaSwitch = document.getElementById('antenna-switch');\n"
+"            const toggleText = antennaSwitch.nextElementSibling.nextElementSibling;\n"
+"            const saveButton = document.getElementById('save-settings');\n"
+"            const statusMessage = document.getElementById('settings-status');\n"
+"            \n"
+"            // Load current antenna settings\n"
+"            fetch('/api/antenna')\n"
+"                .then(response => response.json())\n"
+"                .then(data => {\n"
+"                    if (data.status === 'ok') {\n"
+"                        antennaSwitch.checked = data.external_antenna;\n"
+"                        toggleText.textContent = data.external_antenna ? 'External' : 'Internal';\n"
+"                    }\n"
+"                })\n"
+"                .catch(error => {\n"
+"                    console.error('Error loading antenna settings:', error);\n"
+"                    statusMessage.textContent = 'Failed to load settings';\n"
+"                    statusMessage.className = 'status-message error';\n"
+"                });\n"
+"            \n"
+"            // Update toggle text when switch is changed\n"
+"            antennaSwitch.addEventListener('change', () => {\n"
+"                toggleText.textContent = antennaSwitch.checked ? 'External' : 'Internal';\n"
+"            });\n"
+"            \n"
+"            // Save settings\n"
+"            saveButton.addEventListener('click', () => {\n"
+"                statusMessage.textContent = 'Saving...';\n"
+"                statusMessage.className = 'status-message';\n"
+"                \n"
+"                fetch('/api/antenna', {\n"
+"                    method: 'POST',\n"
+"                    headers: {\n"
+"                        'Content-Type': 'application/json',\n"
+"                    },\n"
+"                    body: JSON.stringify({\n"
+"                        external_antenna: antennaSwitch.checked\n"
+"                    }),\n"
+"                })\n"
+"                .then(response => response.json())\n"
+"                .then(data => {\n"
+"                    if (data.status === 'ok') {\n"
+"                        statusMessage.textContent = data.message || 'Settings saved successfully!';\n"
+"                        statusMessage.className = 'status-message success';\n"
+"                    } else {\n"
+"                        statusMessage.textContent = 'Error: ' + (data.message || 'Unknown error');\n"
+"                        statusMessage.className = 'status-message error';\n"
+"                    }\n"
+"                })\n"
+"                .catch(error => {\n"
+"                    console.error('Error saving settings:', error);\n"
+"                    statusMessage.textContent = 'Failed to save settings';\n"
+"                    statusMessage.className = 'status-message error';\n"
+"                });\n"
+"            });\n"
+"        }\n"
+"        \n"
 "        document.addEventListener('DOMContentLoaded', function() {\n"
 "            loadSystemInfo();\n"
+"            initSettingsPage();\n"
 "        });\n"
 "    </script>\n"
 "</body>\n"
@@ -1138,6 +1300,98 @@ static esp_err_t api_system_info_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
+// API handler for antenna settings
+static esp_err_t api_antenna_settings_handler(httpd_req_t *req) {
+    esp_err_t ret = ESP_OK;
+    char content[100];
+    size_t recv_size = MIN(req->content_len, sizeof(content) - 1);
+    
+    httpd_resp_set_type(req, "application/json");
+    
+    int ret_len = httpd_req_recv(req, content, recv_size);
+    if (ret_len <= 0) {
+        // Handle error
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to receive data");
+        return ESP_FAIL;
+    }
+    
+    content[ret_len] = '\0';
+    
+    // Parse JSON request
+    cJSON *root = cJSON_Parse(content);
+    if (!root) {
+        httpd_resp_sendstr(req, "{\"status\":\"error\",\"message\":\"Invalid JSON\"}");
+        return ESP_FAIL;
+    }
+    
+    // Get the "external_antenna" field from the JSON
+    cJSON *ext_antenna_json = cJSON_GetObjectItem(root, "external_antenna");
+    if (cJSON_IsBool(ext_antenna_json)) {
+        bool use_external = cJSON_IsTrue(ext_antenna_json);
+        
+        // Store the setting in NVS
+        nvs_handle_t nvs_handle;
+        ret = nvs_open("storage", NVS_READWRITE, &nvs_handle);
+        if (ret == ESP_OK) {
+            ret = nvs_set_u8(nvs_handle, "ext_antenna", use_external ? 1 : 0);
+            if (ret == ESP_OK) {
+                ret = nvs_commit(nvs_handle);
+            }
+            nvs_close(nvs_handle);
+        }
+        
+        // Log the new antenna setting
+        ESP_LOGI(TAG, "Antenna setting changed: %s", use_external ? "External" : "Internal");
+        // Note: For ESP32-C5, we can't directly set antenna mode through normal API
+        
+        // Send response
+        if (ret == ESP_OK) {
+            httpd_resp_sendstr(req, 
+                use_external ? 
+                "{\"status\":\"ok\",\"message\":\"External antenna selected. Please reboot for changes to take effect\",\"external_antenna\":true}" : 
+                "{\"status\":\"ok\",\"message\":\"Internal antenna selected. Please reboot for changes to take effect\",\"external_antenna\":false}"
+            );
+        } else {
+            httpd_resp_sendstr(req, "{\"status\":\"error\",\"message\":\"Failed to save antenna setting\"}");
+        }
+    } else {
+        httpd_resp_sendstr(req, "{\"status\":\"error\",\"message\":\"Missing external_antenna field\"}");
+    }
+    
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+// API handler to get current antenna settings
+static esp_err_t api_get_antenna_settings_handler(httpd_req_t *req) {
+    httpd_resp_set_type(req, "application/json");
+    
+    // Get the setting from NVS
+    nvs_handle_t nvs_handle;
+    uint8_t use_external = 0;
+    esp_err_t ret = nvs_open("storage", NVS_READONLY, &nvs_handle);
+    if (ret == ESP_OK) {
+        nvs_get_u8(nvs_handle, "ext_antenna", &use_external);
+        nvs_close(nvs_handle);
+    }
+    
+    // Create JSON response
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "status", "ok");
+    cJSON_AddBoolToObject(root, "external_antenna", use_external);
+    
+    char *json_response = cJSON_PrintUnformatted(root);
+    if (!json_response) {
+        httpd_resp_sendstr(req, "{\"status\":\"error\",\"message\":\"JSON printing failed\"}");
+    } else {
+        httpd_resp_sendstr(req, json_response);
+        free(json_response);
+    }
+    
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
 // Translate filter type string to numeric value
 static uint8_t get_filter_type(const char* filter_str) {
     if (strcmp(filter_str, "management") == 0) return 1;
@@ -1390,6 +1644,23 @@ esp_err_t register_uri_handlers(httpd_handle_t server) {
         .user_ctx = NULL
     };
     httpd_register_uri_handler(server, &sniff_packets_handler);
+    
+    // Register antenna settings endpoints
+    httpd_uri_t antenna_settings_uri = {
+        .uri = "/api/antenna",
+        .method = HTTP_POST,
+        .handler = api_antenna_settings_handler,
+        .user_ctx = NULL
+    };
+    httpd_register_uri_handler(server, &antenna_settings_uri);
+    
+    httpd_uri_t get_antenna_settings_uri = {
+        .uri = "/api/antenna",
+        .method = HTTP_GET,
+        .handler = api_get_antenna_settings_handler,
+        .user_ctx = NULL
+    };
+    httpd_register_uri_handler(server, &get_antenna_settings_uri);
     
     // Handler for static files (this will only handle index.html from embedded string)
     httpd_uri_t file_handler = {
